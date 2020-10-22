@@ -13,112 +13,123 @@
     <meta name="format-detection" content="telephone=no">
     <link rel="stylesheet" href="${yeqifu}/static/layui/css/layui.css" media="all" />
     <link rel="stylesheet" href="${yeqifu}/static/css/public.css" media="all" />
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+        body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+    </style>
+    <script type="text/javascript" src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=q0wOZxAXKWHOcj9xCMi31HP2jXQZfpbp"></script>
+    <title>视角动画</title>
 </head>
-<body class="childrenBody">
-<%--<blockquote class="layui-elem-quote layui-bg-green">--%>
-<%--    <div id="nowTime"></div>--%>
-<%--</blockquote>--%>
-<div class="layui-row layui-col-space10">
-    <div class="layui-col-lg6 layui-col-md6">
-        <blockquote class="layui-elem-quote title">最新文章 <i class="layui-icon layui-red">&#xe756;</i></blockquote>
-        <table class="layui-table mag0" lay-skin="line">
-            <colgroup>
-                <col>
-                <col width="110">
-            </colgroup>
-            <tbody class="hot_news"></tbody>
-        </table>
-    </div>
-</div>
-<!-- 查看公告的div -->
-<div id="desk_viewNewsDiv" style="padding: 10px;display: none;">
-    <h2 id="view_title" align="center"></h2>
-    <hr>
-    <div style="text-align: right;">
-        发布人:<span id="view_opername"></span>
-        <span style="display: inline-block;width: 20px" ></span>
-        发布时间:<span id="view_createtime"></span>
-    </div>
-    <hr>
-    <div id="view_content"></div>
-</div>
-
-<script type="text/javascript" src="${yeqifu}/static/layui/layui.js"></script>
-<script>
-
-    //获取系统时间
-    var newDate = '';
-    getLangDate();
-    //值小于10时，在前面补0
-    function dateFilter(date){
-        if(date < 10){return "0"+date;}
-        return date;
-    }
-    function getLangDate(){
-        var dateObj = new Date(); //表示当前系统时间的Date对象
-        var year = dateObj.getFullYear(); //当前系统时间的完整年份值
-        var month = dateObj.getMonth()+1; //当前系统时间的月份值
-        var date = dateObj.getDate(); //当前系统时间的月份中的日
-        var day = dateObj.getDay(); //当前系统时间中的星期值
-        var weeks = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
-        var week = weeks[day]; //根据星期值，从数组中获取对应的星期字符串
-        var hour = dateObj.getHours(); //当前系统时间的小时值
-        var minute = dateObj.getMinutes(); //当前系统时间的分钟值
-        var second = dateObj.getSeconds(); //当前系统时间的秒钟值
-        var timeValue = "" +((hour >= 12) ? (hour >= 18) ? "晚上" : "下午" : "上午" ); //当前时间属于上午、晚上还是下午
-        newDate = dateFilter(year)+"年"+dateFilter(month)+"月"+dateFilter(date)+"日 "+" "+dateFilter(hour)+":"+dateFilter(minute)+":"+dateFilter(second);
-        document.getElementById("nowTime").innerHTML = "亲爱的${user.realname}，"+timeValue+"好！ 欢迎使用汉鑫汽车租赁系统。当前时间为： "+newDate+"　"+week;
-        setTimeout("getLangDate()",1000);
-    }
-
-    layui.use(['form','element','layer','jquery'],function(){
-        var form = layui.form,
-            layer = parent.layer === undefined ? layui.layer : top.layer,
-            element = layui.element;
-        $ = layui.jquery;
-        //上次登录时间【此处应该从接口获取，实际使用中请自行更换】
-        $(".loginTime").html(newDate.split("日")[0]+"日</br>"+newDate.split("日")[1]);
-        //icon动画
-        $(".panel a").hover(function(){
-            $(this).find(".layui-anim").addClass("layui-anim-scaleSpring");
-        },function(){
-            $(this).find(".layui-anim").removeClass("layui-anim-scaleSpring");
-        })
-        $(".panel a").click(function(){
-            parent.addTab($(this));
-        })
-        //最新文章列表
-        $.get("${yeqifu}/news/loadAllNews.action?page=1&limit=10",function(data){
-            var hotNewsHtml = '';
-            for(var i=0;i<5;i++){
-                hotNewsHtml += '<tr ondblclick="viewNews('+data.data[i].id+')">'
-                    +'<td align="left"><a href="javascript:;"> '+data.data[i].title+'</a></td>'
-                    +'<td>'+data.data[i].createtime.substring(0,10)+'</td>'
-                    +'</tr>';
-            }
-            $(".hot_news").html(hotNewsHtml);
-            $(".userAll span").text(data.length);
-        })
-
-    })
-
-    function viewNews(id){
-        $.get("${yeqifu}/news/loadNewsById.action",{id:id},function(news){
-            layer.open({
-                type:1,
-                title:'查看公告',
-                content:$("#desk_viewNewsDiv"),
-                area:['800px','550px'],
-                success:function(index){
-                    $("#view_title").html(news.title);
-                    $("#view_opername").html(news.opername);
-                    $("#view_createtime").html(news.createtime);
-                    $("#view_content").html(news.content);
-                }
-            });
-        });
-    }
-
-</script>
+<body>
+    <div id="allmap"></div>
 </body>
 </html>
+<script type="text/javascript">
+    // GL版命名空间为BMapGL
+    // 按住鼠标右键，修改倾斜角和角度
+    var bmap = new BMapGL.Map("allmap");    // 创建Map实例
+    bmap.centerAndZoom(new BMapGL.Point(120.12956984222501,30.265708522547023), 19);  // 初始化地图,设置中心点坐标和地图级别
+    bmap.enableScrollWheelZoom(true);     // 开启鼠标滚轮缩放
+    bmap.setTilt(50);      // 设置地图初始倾斜角
+
+    // 定义关键帧
+    // 定义关键帧
+    var keyFrames = [
+        {
+            center: new BMapGL.Point(120.12953843112989,30.2651638706503337),
+            zoom: 19,
+            tilt: 50,
+            heading: -20,//11
+            percentage: 0
+        },
+        {
+            center: new BMapGL.Point(120.12977556779306,30.265693294120457),
+            zoom: 30,
+            tilt: 80,
+            heading: -20,
+            percentage: 0.14//12
+        },
+        {
+            center: new BMapGL.Point(120.12987284887562,30.265920335869193),
+            zoom: 30,
+            tilt: 70,
+            heading: 70,
+            percentage: 0.15//转弯1
+        },
+        {
+            center: new BMapGL.Point(120.1296049272056,30.26600478418921),
+            zoom: 30,
+            tilt: 80,
+            heading: 70,
+            percentage: 0.25 // 21
+        },
+        {
+            center: new BMapGL.Point(120.1286581170713,30.266321230573684),
+            zoom:21,
+            tilt: 80,
+            heading: 70,
+            percentage: 0.35 //22
+        },
+        {
+            center: new BMapGL.Point(120.1286230320907,30.26626862360339),
+            zoom: 21,
+            tilt: 80,
+            heading: 150,
+            percentage: 0.36 // 31
+        },
+
+        {
+            center: new BMapGL.Point(120.12860389482856,30.265731477119328),
+            zoom: 21,
+            tilt: 70,
+            heading: 180,
+            percentage: 0.65 //32
+        },
+        {
+            center: new BMapGL.Point(120.12867406478975,30.265346612606997),
+            zoom:21,
+            tilt: 80,
+            heading: 250,
+            percentage: 0.75 //41
+        },
+        {
+            center: new BMapGL.Point(120.12900258778987,30.26522478467406),
+            zoom:21,
+            tilt: 80,
+            heading: 250,
+            percentage: 0.85 //42
+        },
+        {
+            center: new BMapGL.Point(120.12948739843085,30.265064193074622),
+            zoom:21,
+            tilt: 80,
+            heading: 260,
+            percentage: 0.90
+        },
+        {
+            center: new BMapGL.Point(120.12953843112989,30.2651638706503337),
+            zoom: 90,
+            tilt: 80,
+            heading: 340,//11
+            percentage: 1
+        }
+    ];
+
+
+    var opts = {
+        duration: 50000,
+        delay: 5000,
+        interation: 'INFINITE'
+    };
+    // 声明动画对象
+    var animation = new BMapGL.ViewAnimation(keyFrames, opts);
+    // 监听事件
+    animation.addEventListener('animationstart', function(e){console.log('start')});
+    animation.addEventListener('animationiterations', function(e){console.log('onanimationiterations')});
+    animation.addEventListener('animationend', function(e){console.log('end')});
+    // 开始播放动画
+    setTimeout('bmap.startViewAnimation(animation)', 00);
+</script>
+
